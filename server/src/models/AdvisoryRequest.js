@@ -17,6 +17,7 @@ const advisoryRequestSchema = new mongoose.Schema(
     budgetMax: { type: Number, min: 0 },
     room: { type: String, trim: true, maxlength: 80 },
     message: { type: String, trim: true, maxlength: 4000 },
+    note: { type: String, trim: true, maxlength: 2000 },
     status: { type: String, enum: ADVISORY_STATUSES, default: "new", index: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

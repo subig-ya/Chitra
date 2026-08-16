@@ -40,12 +40,13 @@ export async function releasePayment(order) {
   }
 }
 
-export async function refundPayment(order) {
+export async function refundPayment(order, refundAmount) {
   if (order.paymentId) {
     const payment = await Payment.findById(order.paymentId);
     if (payment && payment.status !== "refunded") {
       payment.status = "refunded";
-      payment.failedAt = new Date();
+      if (refundAmount !== undefined) payment.refundAmount = refundAmount;
+      payment.refundedAt = new Date();
       await payment.save();
     }
   }

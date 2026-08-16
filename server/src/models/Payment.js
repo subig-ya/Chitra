@@ -35,8 +35,10 @@ const paymentSchema = new mongoose.Schema(
     reference: { type: String, unique: true, index: true },
     gatewayTransactionId: { type: String, trim: true },
     rawCallback: { type: mongoose.Schema.Types.Mixed },
+    refundAmount: { type: Number, min: 0 },
     heldAt: { type: Date },
     releasedAt: { type: Date },
+    refundedAt: { type: Date },
     failedAt: { type: Date },
   },
   { timestamps: true }

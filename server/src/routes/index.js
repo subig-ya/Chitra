@@ -6,6 +6,8 @@ import requestRoutes from "./request.routes.js";
 import orderRoutes from "./order.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import payoutRoutes from "./payout.routes.js";
+import reviewRoutes from "./review.routes.js";
+import disputeRoutes from "./dispute.routes.js";
 import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
@@ -21,6 +23,8 @@ router.use("/requests", requestRoutes);
 router.use("/orders", orderRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/payouts", payoutRoutes);
+router.use("/reviews", reviewRoutes);
+router.use("/disputes", disputeRoutes);
 
 router.use("/protected-ping", authenticate, (req, res) =>
   res.json({ success: true, user: req.user })

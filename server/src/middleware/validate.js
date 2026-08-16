@@ -6,7 +6,13 @@ export function validate(schema, source = "body") {
     if (!result.success) {
       throw new ApiError(422, "Validation failed", result.error.issues);
     }
-    req[source] = result.data;
+    if (source === "query") {
+      req.validatedQuery = result.data;
+    } else if (source === "params") {
+      req.validatedParams = result.data;
+    } else {
+      req[source] = result.data;
+    }
     next();
   };
 }

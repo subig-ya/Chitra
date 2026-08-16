@@ -22,4 +22,7 @@ export const env = {
     refreshExpires: process.env.JWT_REFRESH_EXPIRES || "7d",
   },
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+  platformFeePercent: parseFloat(process.env.PLATFORM_FEE_PERCENT || "10"),
+  autoReleaseDays: parseInt(process.env.AUTO_RELEASE_DAYS || "5", 10),
+  requestExpiryDays: parseInt(process.env.REQUEST_EXPIRY_DAYS || "7", 10),
 };

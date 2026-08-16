@@ -64,6 +64,7 @@ export default function OrderDetail() {
   const isBuyer = user.role === "buyer";
   const isArtist = user.role === "artist";
   const other = isBuyer ? order.artistId : order.buyerId;
+  const isArtworkOrder = order.type === "artwork";
 
   const step = STEPS[order.status] || 1;
 
@@ -71,14 +72,23 @@ export default function OrderDetail() {
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
         <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-5">
-          <div>
-            <h1 className="text-xl font-bold">
-              {order.packageTitle || "Commission"}
-            </h1>
-            <p className="text-sm text-slate-500">
-              {isBuyer ? "Artist" : "Buyer"}: {other?.name} · order{" "}
-              {order._id.slice(-6)}
-            </p>
+          <div className="flex items-center gap-4">
+            {isArtworkOrder && order.artworkId?.imageUrl && (
+              <img
+                src={order.artworkId.imageUrl}
+                alt={order.packageTitle}
+                className="h-16 w-14 rounded-lg object-cover"
+              />
+            )}
+            <div>
+              <h1 className="text-xl font-bold">
+                {order.packageTitle || "Commission"}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {isBuyer ? "Artist" : "Buyer"}: {other?.name} · order{" "}
+                {order._id.slice(-6)} · {isArtworkOrder ? "artwork" : "commission"}
+              </p>
+            </div>
           </div>
           <StatusBadge status={order.status} />
         </div>
@@ -134,9 +144,11 @@ export default function OrderDetail() {
         {/* Buyer actions */}
         {isBuyer && order.status === "awaiting_payment" && (
           <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-            <h3 className="font-semibold">Pay to start the commission</h3>
+            <h3 className="font-semibold">
+              {isArtworkOrder ? "Pay to purchase this artwork" : "Pay to start the commission"}
+            </h3>
             <p className="mt-1 text-sm text-slate-500">
-              Funds are held in escrow until you approve the final work.
+              Funds are held in escrow until you receive the work.
             </p>
             <div className="mt-3 flex gap-2">
               {["esewa", "khalti"].map((g) => (
@@ -161,21 +173,27 @@ export default function OrderDetail() {
 
         {isBuyer && order.status === "delivered" && (
           <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-            <h3 className="font-semibold">Review the delivery</h3>
+            <h3 className="font-semibold">
+              {isArtworkOrder ? "Received your artwork?" : "Review the delivery"}
+            </h3>
             <div className="mt-3 flex gap-2">
               <button
                 onClick={() => mutate.mutate({ path: "/approve" })}
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
               >
-                Approve — release escrow
+                {isArtworkOrder
+                  ? "Confirm receipt — release escrow"
+                  : "Approve — release escrow"}
               </button>
-              <button
-                disabled={order.revisionCount >= order.revisionLimit}
-                onClick={() => mutate.mutate({ path: "/request-revision" })}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40"
-              >
-                Request revision ({order.revisionCount}/{order.revisionLimit})
-              </button>
+              {!isArtworkOrder && (
+                <button
+                  disabled={order.revisionCount >= order.revisionLimit}
+                  onClick={() => mutate.mutate({ path: "/request-revision" })}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-40"
+                >
+                  Request revision ({order.revisionCount}/{order.revisionLimit})
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -184,58 +202,110 @@ export default function OrderDetail() {
         {isArtist &&
           ["in_progress", "revision_requested"].includes(order.status) && (
             <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
-              <h3 className="font-semibold">Post a milestone</h3>
-              <div className="mt-2 flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  placeholder="Title (e.g. Sketch)"
-                  value={milestone.title}
-                  onChange={(e) =>
-                    setMilestone((m) => ({ ...m, title: e.target.value }))
-                  }
-                />
-                <input
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  placeholder="Note"
-                  value={milestone.note}
-                  onChange={(e) =>
-                    setMilestone((m) => ({ ...m, note: e.target.value }))
-                  }
-                />
-                <button
-                  disabled={!milestone.title}
-                  onClick={() =>
-                    mutate.mutate({
-                      path: "/milestone",
-                      payload: { ...milestone },
-                    })
-                  }
-                  className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  Post
-                </button>
-              </div>
+              {isArtworkOrder ? (
+                <>
+                  <h3 className="font-semibold">Ship the artwork</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Add a tracking link or a photo of the packaged work. The
+                    buyer confirms receipt before escrow is released.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="Tracking link or photo URL"
+                      value={deliverUrl}
+                      onChange={(e) => setDeliverUrl(e.target.value)}
+                    />
+                    <button
+                      disabled={!deliverUrl}
+                      onClick={() =>
+                        mutate.mutate({ path: "/deliver", payload: { fileUrl: deliverUrl } })
+                      }
+                      className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                    >
+                      Mark as shipped
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold">Post a milestone</h3>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="Title (e.g. Sketch)"
+                      value={milestone.title}
+                      onChange={(e) =>
+                        setMilestone((m) => ({ ...m, title: e.target.value }))
+                      }
+                    />
+                    <input
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="Note"
+                      value={milestone.note}
+                      onChange={(e) =>
+                        setMilestone((m) => ({ ...m, note: e.target.value }))
+                      }
+                    />
+                    <button
+                      disabled={!milestone.title}
+                      onClick={() =>
+                        mutate.mutate({
+                          path: "/milestone",
+                          payload: { ...milestone },
+                        })
+                      }
+                      className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                    >
+                      Post
+                    </button>
+                  </div>
 
-              <h3 className="mt-5 font-semibold">Submit final deliverable</h3>
-              <div className="mt-2 flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                  placeholder="https://…/final-file.png"
-                  value={deliverUrl}
-                  onChange={(e) => setDeliverUrl(e.target.value)}
-                />
-                <button
-                  disabled={!deliverUrl}
-                  onClick={() =>
-                    mutate.mutate({ path: "/deliver", payload: { fileUrl: deliverUrl } })
-                  }
-                  className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
-                >
-                  Deliver
-                </button>
-              </div>
+                  <h3 className="mt-5 font-semibold">Submit final deliverable</h3>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                      placeholder="https://…/final-file.png"
+                      value={deliverUrl}
+                      onChange={(e) => setDeliverUrl(e.target.value)}
+                    />
+                    <button
+                      disabled={!deliverUrl}
+                      onClick={() =>
+                        mutate.mutate({ path: "/deliver", payload: { fileUrl: deliverUrl } })
+                      }
+                      className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-40"
+                    >
+                      Deliver
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
+
+        {/* Shipping address for artwork orders */}
+        {isArtworkOrder && order.shippingAddress && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5">
+            <h3 className="font-semibold">Shipping address</h3>
+            <div className="mt-2 text-sm text-slate-600">
+              <p className="font-medium text-slate-800">
+                {order.shippingAddress.fullName}
+              </p>
+              <p>{order.shippingAddress.addressLine}</p>
+              <p>
+                {order.shippingAddress.city}
+                {order.shippingAddress.zip && ` · ${order.shippingAddress.zip}`}
+              </p>
+              <p>Phone: {order.shippingAddress.phone}</p>
+              {order.shippingAddress.note && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Note: {order.shippingAddress.note}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Dispute */}
         {["in_progress", "delivered", "revision_requested"].includes(

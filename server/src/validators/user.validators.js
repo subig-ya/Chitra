@@ -2,6 +2,10 @@ import { z } from "zod";
 
 const urlOrEmpty = z.string().trim().url("Must be a valid URL").optional().or(z.literal(""));
 
+export const wishlistItemSchema = z.object({
+  artworkId: z.string().length(24, "Invalid artwork id"),
+});
+
 export const updateMeSchema = z
   .object({
     name: z.string().trim().min(2).max(80).optional(),

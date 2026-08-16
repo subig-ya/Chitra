@@ -29,13 +29,31 @@ const deliverableSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const shippingAddressSchema = new mongoose.Schema(
+  {
+    fullName: { type: String, trim: true, maxlength: 120 },
+    phone: { type: String, trim: true, maxlength: 30 },
+    addressLine: { type: String, trim: true, maxlength: 300 },
+    city: { type: String, trim: true, maxlength: 80 },
+    zip: { type: String, trim: true, maxlength: 30 },
+    note: { type: String, trim: true, maxlength: 500 },
+  },
+  { _id: false }
+);
+
 const orderSchema = new mongoose.Schema(
   {
+    type: { type: String, enum: ["commission", "artwork"], default: "commission", index: true },
     requestId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CommissionRequest",
-      required: true,
+      sparse: true,
       unique: true,
+    },
+    artworkId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Artwork",
+      index: true,
     },
     buyerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,6 +67,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    shippingAddress: { type: shippingAddressSchema },
     packageTitle: { type: String, trim: true },
     agreedPrice: { type: Number, required: true, min: 1 },
     platformFeePercent: { type: Number, required: true, min: 0, max: 100 },

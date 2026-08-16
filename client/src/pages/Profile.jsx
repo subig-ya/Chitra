@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import api, { apiErrorMessage } from "../lib/api.js";
 import { useAuth } from "../lib/auth.jsx";
 
@@ -81,6 +82,28 @@ export default function Profile() {
             <p>Orders completed: {profile.totalOrders}</p>
           </div>
         )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            to="/wishlist"
+            className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          >
+            Wishlist
+          </Link>
+          <Link
+            to="/messages"
+            className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          >
+            Messages
+          </Link>
+          {me.role === "artist" && (
+            <Link
+              to="/artworks/mine"
+              className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              My artworks
+            </Link>
+          )}
+        </div>
       </div>
 
       {me.role === "artist" && (

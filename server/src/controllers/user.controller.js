@@ -1,9 +1,18 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/User.js";
+import { Artwork } from "../models/Artwork.js";
+
+function refId(ref) {
+  return String(ref && ref._id ? ref._id : ref);
+}
 
 export const getMe = asyncHandler(async (req, res) => {
-  res.json({ success: true, user: req.user });
+  const user = await User.findById(req.userId).populate(
+    "wishlist",
+    "title imageUrl price medium artistId availability isVerified isActive"
+  );
+  res.json({ success: true, user });
 });
 
 export const updateMe = asyncHandler(async (req, res) => {
@@ -61,4 +70,26 @@ export const getPublicProfile = asyncHandler(async (req, res) => {
       createdAt: user.createdAt,
     },
   });
+});
+
+export const addWishlistItem = asyncHandler(async (req, res) => {
+  const { artworkId } = req.body;
+  const artwork = await Artwork.findById(artworkId);
+  if (!artwork || !artwork.isActive || !artwork.isVerified) {
+    throw new ApiError(404, "Artwork not found");
+  }
+
+  const user = await User.findById(req.userId);
+  if (!user.wishlist.some((id) => refId(id) === artworkId)) {
+    user.wishlist.push(artworkId);
+    await user.save();
+  }
+  res.json({ success: true, wishlist: user.wishlist });
+});
+
+export const removeWishlistItem = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.userId);
+  user.wishlist = user.wishlist.filter((id) => refId(id) !== req.params.artworkId);
+  await user.save();
+  res.json({ success: true, wishlist: user.wishlist });
 });

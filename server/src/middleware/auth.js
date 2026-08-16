@@ -36,3 +36,27 @@ export const requireRole = (...roles) =>
     }
     next();
   });
+
+/**
+ * Attaches req.user when a valid Bearer token is present,
+ * but does not reject unauthenticated requests.
+ */
+export const optionalAuth = asyncHandler(async (req, _res, next) => {
+  const authHeader = req.headers.authorization || "";
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme !== "Bearer" || !token) {
+    return next();
+  }
+  try {
+    const payload = verifyAccessToken(token);
+    const user = await User.findById(payload.sub);
+    if (user) {
+      req.user = user;
+      req.userId = user._id.toString();
+      req.userRole = user.role;
+    }
+  } catch {
+    /* ignore invalid token */
+  }
+  next();
+});

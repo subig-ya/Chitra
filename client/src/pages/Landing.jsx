@@ -126,6 +126,9 @@ const PRODUCTS = [
 const NAV_LINKS = [
   { label: "Home", href: "#top" },
   { label: "Shop", href: "/shop" },
+  { label: "Collections", href: "/collections" },
+  { label: "Stories", href: "/stories" },
+  { label: "Advisory", href: "/advisory" },
   { label: "Categories", href: "#categories" },
   { label: "About Us", href: "#story" },
   { label: "Contact", href: "#contact" },

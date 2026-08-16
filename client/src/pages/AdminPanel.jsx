@@ -24,6 +24,29 @@ export default function AdminPanel() {
     queryFn: async () => (await api.get("/admin/analytics")).data,
   });
 
+  const { data: pendingArtworks } = useQuery({
+    queryKey: ["admin", "pending-artworks"],
+    queryFn: async () => (await api.get("/admin/artworks/pending")).data,
+  });
+
+  const { data: advisory } = useQuery({
+    queryKey: ["admin", "advisory"],
+    queryFn: async () => (await api.get("/admin/advisory")).data,
+  });
+
+  const { data: collections } = useQuery({
+    queryKey: ["admin", "collections"],
+    queryFn: async () => (await api.get("/collections")).data,
+  });
+
+  const [collectionForm, setCollectionForm] = useState({
+    title: "",
+    subtitle: "",
+    curatorNote: "",
+    coverImageUrl: "",
+    isFeatured: true,
+  });
+
   const verifyMutation = useMutation({
     mutationFn: ({ id, verified }) =>
       api.patch(`/admin/artists/${id}/verify`, { verified }),
@@ -52,9 +75,55 @@ export default function AdminPanel() {
     resolveMutation.mutate(payload);
   };
 
+  const verifyArtwork = useMutation({
+    mutationFn: ({ id, verified }) =>
+      api.patch(`/admin/artworks/${id}/verify`, { verified }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "pending-artworks"] });
+      queryClient.invalidateQueries({ queryKey: ["artworks"] });
+    },
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
+  const setAdvisoryStatus = useMutation({
+    mutationFn: ({ id, status }) =>
+      api.patch(`/admin/advisory/${id}/status`, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "advisory"] }),
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
+  const saveCollection = useMutation({
+    mutationFn: async (payload) =>
+      (await api.post("/admin/collections", payload)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "collections"] });
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      setCollectionForm({
+        title: "",
+        subtitle: "",
+        curatorNote: "",
+        coverImageUrl: "",
+        isFeatured: true,
+      });
+    },
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
+  const deleteCollection = useMutation({
+    mutationFn: async (id) => (await api.delete(`/admin/collections/${id}`)).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "collections"] });
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+    },
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
   const tabs = [
     { id: "artists", label: "Pending artists" },
+    { id: "artworks", label: "Artwork review" },
     { id: "disputes", label: "Disputes" },
+    { id: "advisory", label: "Advisory" },
+    { id: "collections", label: "Collections" },
     { id: "analytics", label: "Analytics" },
   ];
 
@@ -125,6 +194,195 @@ export default function AdminPanel() {
           {pending && pending.data.length === 0 && (
             <p className="text-slate-500">No artists pending review.</p>
           )}
+        </div>
+      )}
+
+      {tab === "artworks" && (
+        <div className="mt-6 space-y-3">
+          {pendingArtworks?.data.map((a) => (
+            <div
+              key={a._id}
+              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4"
+            >
+              <img
+                src={a.imageUrl}
+                alt={a.title}
+                className="h-16 w-14 rounded-lg object-cover"
+              />
+              <div className="flex-1">
+                <p className="font-semibold">{a.title}</p>
+                <p className="text-sm text-slate-500">
+                  by {a.artistId?.name || "Unknown"} · {a.medium} · Rs.{a.price}
+                </p>
+                <p className="mt-1 line-clamp-1 text-xs text-slate-400">
+                  {a.description}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => verifyArtwork.mutate({ id: a._id, verified: true })}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => verifyArtwork.mutate({ id: a._id, verified: false })}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
+          {pendingArtworks && pendingArtworks.data.length === 0 && (
+            <p className="text-slate-500">No artworks pending review.</p>
+          )}
+        </div>
+      )}
+
+      {tab === "advisory" && (
+        <div className="mt-6 space-y-3">
+          {advisory?.data.map((r) => (
+            <div key={r._id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">
+                    {r.name} ({r.email})
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {r.room} · {r.budgetMin && `Rs.${r.budgetMin}`}
+                    {r.budgetMin && r.budgetMax && " – "}
+                    {r.budgetMax && `Rs.${r.budgetMax}`}
+                  </p>
+                </div>
+                <StatusBadge status={r.status} />
+              </div>
+              <p className="mt-2 text-sm text-slate-600">{r.message}</p>
+              {r.note && (
+                <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                  Note: {r.note}
+                </p>
+              )}
+              <div className="mt-3 flex gap-2">
+                {["new", "contacted", "closed"].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setAdvisoryStatus.mutate({ id: r._id, status: s })}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                      r.status === s
+                        ? "bg-slate-900 text-white"
+                        : "border border-slate-300 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {advisory && advisory.data.length === 0 && (
+            <p className="text-slate-500">No advisory requests yet.</p>
+          )}
+        </div>
+      )}
+
+      {tab === "collections" && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div>
+            <p className="font-semibold">Create collection</p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveCollection.mutate(collectionForm);
+              }}
+              className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-white p-4"
+            >
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Title"
+                required
+                value={collectionForm.title}
+                onChange={(e) =>
+                  setCollectionForm((f) => ({ ...f, title: e.target.value }))
+                }
+              />
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Subtitle"
+                value={collectionForm.subtitle}
+                onChange={(e) =>
+                  setCollectionForm((f) => ({ ...f, subtitle: e.target.value }))
+                }
+              />
+              <textarea
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Curator's note"
+                rows={3}
+                value={collectionForm.curatorNote}
+                onChange={(e) =>
+                  setCollectionForm((f) => ({ ...f, curatorNote: e.target.value }))
+                }
+              />
+              <input
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Cover image URL"
+                required
+                value={collectionForm.coverImageUrl}
+                onChange={(e) =>
+                  setCollectionForm((f) => ({ ...f, coverImageUrl: e.target.value }))
+                }
+              />
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={collectionForm.isFeatured}
+                  onChange={(e) =>
+                    setCollectionForm((f) => ({ ...f, isFeatured: e.target.checked }))
+                  }
+                />
+                Featured on the Collections page
+              </label>
+              <button
+                type="submit"
+                disabled={saveCollection.isPending}
+                className="w-full rounded-lg bg-slate-900 py-2 text-sm font-semibold text-white disabled:opacity-40"
+              >
+                {saveCollection.isPending ? "Creating…" : "Create collection"}
+              </button>
+            </form>
+          </div>
+          <div className="space-y-3">
+            {collections?.data.map((c) => (
+              <div
+                key={c._id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={c.coverImageUrl}
+                    alt={c.title}
+                    className="h-14 w-16 rounded-lg object-cover"
+                  />
+                  <div>
+                    <p className="font-semibold">{c.title}</p>
+                    <p className="text-sm text-slate-500">
+                      {c.artworkCount} works ·{" "}
+                      {c.isFeatured ? "featured" : "not featured"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Remove "${c.title}"?`))
+                      deleteCollection.mutate(c._id);
+                  }}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

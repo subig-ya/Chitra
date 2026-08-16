@@ -53,6 +53,10 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ROLES, default: "buyer", index: true },
     avatar: { type: String, trim: true },
     bio: { type: String, trim: true, maxlength: 2000 },
+    wishlist: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Artwork" }],
+      default: [],
+    },
     artistProfile: { type: artistProfileSchema },
     refreshTokens: {
       type: [refreshTokenSchema],

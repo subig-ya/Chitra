@@ -3,6 +3,18 @@ import Navbar from "./components/Navbar.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
 import Landing from "./pages/Landing.jsx";
 import Home from "./pages/Home.jsx";
+import Shop from "./pages/Shop.jsx";
+import ArtworkDetail from "./pages/ArtworkDetail.jsx";
+import Cart from "./pages/Cart.jsx";
+import Checkout from "./pages/Checkout.jsx";
+import Wishlist from "./pages/Wishlist.jsx";
+import MyArtworks from "./pages/MyArtworks.jsx";
+import Collections from "./pages/Collections.jsx";
+import CollectionDetail from "./pages/CollectionDetail.jsx";
+import Stories from "./pages/Stories.jsx";
+import StoryDetail from "./pages/StoryDetail.jsx";
+import Advisory from "./pages/Advisory.jsx";
+import Conversations from "./pages/Conversations.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import ArtistDetail from "./pages/ArtistDetail.jsx";
@@ -31,11 +43,58 @@ export default function App() {
       <Route path="/" element={<Landing />} />
 
       <Route element={<MarketplaceLayout />}>
-        <Route path="/shop" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/artworks/:id" element={<ArtworkDetail />} />
+        <Route path="/artists" element={<Home />} />
         <Route path="/artists/:id" element={<ArtistDetail />} />
+        <Route path="/collections" element={<Collections />} />
+        <Route path="/collections/:id" element={<CollectionDetail />} />
+        <Route path="/stories" element={<Stories />} />
+        <Route path="/stories/:id" element={<StoryDetail />} />
+        <Route path="/advisory" element={<Advisory />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/payment/return" element={<PaymentReturn />} />
+        <Route
+          path="/cart"
+          element={
+            <RequireAuth>
+              <Cart />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <RequireAuth>
+              <Checkout />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/wishlist"
+          element={
+            <RequireAuth>
+              <Wishlist />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <RequireAuth>
+              <Conversations />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/artworks/mine"
+          element={
+            <RequireAuth roles={["artist"]}>
+              <MyArtworks />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/requests"
           element={

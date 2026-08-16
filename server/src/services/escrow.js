@@ -1,5 +1,26 @@
 import { Order } from "../models/Order.js";
 import { Payment } from "../models/Payment.js";
+import { Artwork } from "../models/Artwork.js";
+
+function refId(ref) {
+  return String(ref && ref._id ? ref._id : ref);
+}
+
+async function markArtworkSold(orderId) {
+  const order = await Order.findById(orderId).select("artworkId");
+  if (order?.artworkId) {
+    await Artwork.updateOne({ _id: order.artworkId }, { availability: "sold" });
+  }
+}
+
+async function releaseArtwork(order) {
+  if (order?.artworkId) {
+    await Artwork.updateOne(
+      { _id: order.artworkId },
+      { availability: "available" }
+    );
+  }
+}
 
 /**
  * Core escrow transitions. Money is a ledger state only:
@@ -25,6 +46,7 @@ export async function holdEscrow({ paymentId, transactionId, rawCallback }) {
     order.status = "in_progress";
     order.paymentId = payment._id;
     await order.save();
+    await markArtworkSold(order._id);
   }
   return payment;
 }
@@ -50,4 +72,5 @@ export async function refundPayment(order, refundAmount) {
       await payment.save();
     }
   }
+  await releaseArtwork(order);
 }

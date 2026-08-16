@@ -33,6 +33,7 @@ export const listMyOrders = asyncHandler(async (req, res) => {
       .limit(limit)
       .populate("buyerId", "name avatar")
       .populate("artistId", "name avatar")
+      .populate("artworkId", "title imageUrl price")
       .lean(),
     Order.countDocuments(filter),
   ]);
@@ -47,7 +48,8 @@ export const listMyOrders = asyncHandler(async (req, res) => {
 export const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate("buyerId", "name avatar")
-    .populate("artistId", "name avatar");
+    .populate("artistId", "name avatar")
+    .populate("artworkId", "title imageUrl price");
   if (!order) throw new ApiError(404, "Order not found");
 
   await assertParticipant(order, req);

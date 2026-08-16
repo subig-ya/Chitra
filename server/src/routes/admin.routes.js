@@ -10,6 +10,10 @@ import {
   updateCollectionSchema,
 } from "../validators/collection.validators.js";
 import {
+  updateReportStatusSchema,
+  listReportsQuerySchema,
+} from "../validators/report.validators.js";
+import {
   listPendingArtists,
   setArtistVerification,
   getAnalytics,
@@ -23,6 +27,10 @@ import {
   updateCollection,
   deleteCollection,
 } from "../controllers/adminShop.controller.js";
+import {
+  listAllReports,
+  updateReportStatus,
+} from "../controllers/report.controller.js";
 
 const router = Router();
 
@@ -60,5 +68,13 @@ router.patch(
   updateCollection
 );
 router.delete("/collections/:id", deleteCollection);
+
+/* Reports */
+router.get("/reports", validate(listReportsQuerySchema, "query"), listAllReports);
+router.patch(
+  "/reports/:id/status",
+  validate(updateReportStatusSchema),
+  updateReportStatus
+);
 
 export default router;

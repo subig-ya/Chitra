@@ -16,6 +16,9 @@ import collectionRoutes from "./collection.routes.js";
 import storyRoutes from "./story.routes.js";
 import advisoryRoutes from "./advisory.routes.js";
 import conversationRoutes from "./conversation.routes.js";
+import notificationRoutes from "./notification.routes.js";
+import reportRoutes from "./report.routes.js";
+import uploadRoutes from "./upload.routes.js";
 import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
@@ -41,6 +44,9 @@ router.use("/collections", collectionRoutes);
 router.use("/stories", storyRoutes);
 router.use("/advisory", advisoryRoutes);
 router.use("/conversations", conversationRoutes);
+router.use("/notifications", notificationRoutes);
+router.use("/reports", reportRoutes);
+router.use("/upload", uploadRoutes);
 
 router.use("/protected-ping", authenticate, (req, res) =>
   res.json({ success: true, user: req.user })

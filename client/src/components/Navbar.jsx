@@ -45,6 +45,43 @@ export default function Navbar() {
     navigate("/");
   };
 
+  if (user?.role === "artist") {
+    return (
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3">
+          <Link to="/" className="flex items-baseline gap-1 text-xl font-bold tracking-tight">
+            Chitra<span className="text-amber-600">.</span>
+          </Link>
+          <nav className="flex items-center gap-1.5">
+            <NavLink to="/" className={navLinkClass} end>
+              Home
+            </NavLink>
+            {user.avatar && (
+              <Link
+                to="/panel"
+                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-200"
+                aria-label="Artist panel"
+              >
+                <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+              </Link>
+            )}
+            {!user.avatar && (
+              <NavLink to="/panel" className={navLinkClass}>
+                {user.name.split(" ")[0]}
+              </NavLink>
+            )}
+            <button
+              onClick={handleLogout}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 hover:bg-slate-100"
+            >
+              Log out
+            </button>
+          </nav>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3">

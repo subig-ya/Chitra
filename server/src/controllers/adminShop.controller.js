@@ -3,6 +3,11 @@ import { Collection } from "../models/Collection.js";
 import { AdvisoryRequest } from "../models/AdvisoryRequest.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { notify } from "../services/notify.js";
+
+function refId(ref) {
+  return String(ref && ref._id ? ref._id : ref);
+}
 
 /* ---------- artwork moderation ---------- */
 
@@ -24,6 +29,16 @@ export const setArtworkVerification = asyncHandler(async (req, res) => {
   artwork.isVerified = verified;
   if (!verified) artwork.isActive = false;
   await artwork.save();
+
+  await notify(refId(artwork.artistId), {
+    type: "verification",
+    title: verified ? "Artwork approved" : "Artwork rejected",
+    message: verified
+      ? `"${artwork.title}" is now live on the marketplace.`
+      : `"${artwork.title}" did not pass review and has been taken down.`,
+    refId: artwork._id,
+    refModel: "Artwork",
+  });
 
   res.json({
     success: true,

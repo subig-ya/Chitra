@@ -5,6 +5,7 @@ import morgan from "morgan";
 import routes from "./routes/index.js";
 import { notFoundHandler, errorHandler } from "./middleware/error.js";
 import { env } from "./config/env.js";
+import { UPLOAD_DIR } from "./controllers/upload.controller.js";
 
 export function createApp() {
   const app = express();
@@ -28,6 +29,8 @@ export function createApp() {
   );
   app.use(cookieParser());
   app.use(morgan(env.isProd ? "combined" : "dev"));
+
+  app.use("/uploads", express.static(UPLOAD_DIR));
 
   app.use("/api", routes);
 

@@ -2,6 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import api, { apiErrorMessage } from "../lib/api.js";
 import StatusBadge from "../components/StatusBadge.jsx";
+import { timeAgo } from "../lib/time.js";
+
+const REPORT_CATEGORY_LABELS = {
+  harassment: "Harassment or abuse",
+  late_payment: "Late or non-payment",
+  misuse_of_work: "Misuse of work",
+  no_show: "No-show / ghosting",
+  false_claim: "False claim about delivery",
+  other: "Other",
+};
 
 export default function AdminPanel() {
   const queryClient = useQueryClient();
@@ -45,6 +55,18 @@ export default function AdminPanel() {
     curatorNote: "",
     coverImageUrl: "",
     isFeatured: true,
+  });
+
+  const [reportFilter, setReportFilter] = useState("new");
+
+  const { data: reports } = useQuery({
+    queryKey: ["admin", "reports", reportFilter],
+    queryFn: async () =>
+      (
+        await api.get("/admin/reports", {
+          params: { status: reportFilter || undefined },
+        })
+      ).data,
   });
 
   const verifyMutation = useMutation({
@@ -118,10 +140,22 @@ export default function AdminPanel() {
     onError: (err) => setError(apiErrorMessage(err)),
   });
 
+  const [reportNote, setReportNote] = useState({});
+  const updateReport = useMutation({
+    mutationFn: ({ id, status, resolutionNote }) =>
+      api.patch(`/admin/reports/${id}/status`, { status, resolutionNote }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+      setReportNote({});
+    },
+    onError: (err) => setError(apiErrorMessage(err)),
+  });
+
   const tabs = [
     { id: "artists", label: "Pending artists" },
     { id: "artworks", label: "Artwork review" },
     { id: "disputes", label: "Disputes" },
+    { id: "reports", label: "Reports" },
     { id: "advisory", label: "Advisory" },
     { id: "collections", label: "Collections" },
     { id: "analytics", label: "Analytics" },
@@ -485,6 +519,86 @@ export default function AdminPanel() {
           {disputes && disputes.data.length === 0 && (
             <p className="text-slate-500">No disputes.</p>
           )}
+        </div>
+      )}
+
+      {tab === "reports" && (
+        <div className="mt-6">
+          <div className="flex gap-2">
+            {["new", "reviewed", "resolved", ""].map((s) => (
+              <button
+                key={s || "all"}
+                onClick={() => setReportFilter(s)}
+                className={`rounded-full px-3 py-1 text-sm font-semibold capitalize ${
+                  reportFilter === s
+                    ? "bg-slate-900 text-white"
+                    : "border border-slate-300 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {s || "all"}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {reports?.data.map((r) => (
+              <div key={r._id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold">
+                      {r.reporterId?.name} → {r.reportedUserId?.name}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {REPORT_CATEGORY_LABELS[r.category] || r.category} ·{" "}
+                      {timeAgo(r.createdAt)}
+                      {r.orderId && ` · Order: ${r.orderId.packageTitle || r.orderId._id}`}
+                    </p>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </div>
+                <p className="mt-2 text-sm text-slate-600">{r.description}</p>
+                {r.resolutionNote && (
+                  <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                    Note: {r.resolutionNote}
+                  </p>
+                )}
+                {r.status !== "resolved" && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <input
+                      className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm sm:max-w-sm"
+                      placeholder="Resolution note (optional)"
+                      value={reportNote[r._id] || ""}
+                      onChange={(e) =>
+                        setReportNote((n) => ({ ...n, [r._id]: e.target.value }))
+                      }
+                    />
+                    {["reviewed", "resolved"].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() =>
+                          updateReport.mutate({
+                            id: r._id,
+                            status: s,
+                            resolutionNote: reportNote[r._id]?.trim() || undefined,
+                          })
+                        }
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${
+                          s === "resolved"
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                            : "border border-slate-300 text-slate-600 hover:bg-slate-100"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            {reports && reports.data.length === 0 && (
+              <p className="text-slate-500">No reports with this status.</p>
+            )}
+          </div>
         </div>
       )}
 

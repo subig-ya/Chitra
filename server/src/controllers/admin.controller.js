@@ -6,6 +6,7 @@ import { Dispute } from "../models/Dispute.js";
 import { CommissionRequest } from "../models/CommissionRequest.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { notify } from "../services/notify.js";
 
 const PENDING_FIELDS = "name email avatar bio artistProfile role createdAt";
 
@@ -29,6 +30,15 @@ export const setArtistVerification = asyncHandler(async (req, res) => {
   artist.artistProfile ??= { isVerified: false };
   artist.artistProfile.isVerified = verified;
   await artist.save();
+
+  await notify(artist._id, {
+    type: "verification",
+    title: verified ? "You are verified" : "Verification update",
+    message: verified
+      ? "Your artist profile has been verified. Start selling your work on Chitra."
+      : "Your artist verification was not approved. Update your profile and try again.",
+    refModel: "User",
+  });
 
   res.json({
     success: true,

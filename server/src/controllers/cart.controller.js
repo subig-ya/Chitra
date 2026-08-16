@@ -4,6 +4,7 @@ import { Order } from "../models/Order.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { env } from "../config/env.js";
+import { notify } from "../services/notify.js";
 
 function refId(ref) {
   return String(ref && ref._id ? ref._id : ref);
@@ -130,6 +131,13 @@ export const checkoutCart = asyncHandler(async (req, res) => {
     });
     orders.push(order);
     await Artwork.updateOne({ _id: a._id }, { availability: "reserved" });
+    await notify(refId(a.artistId), {
+      type: "order",
+      title: "New artwork order",
+      message: `A collector ordered "${a.title}" (Rs. ${a.price}).`,
+      refId: order._id,
+      refModel: "Order",
+    });
   }
 
   cart.items = [];

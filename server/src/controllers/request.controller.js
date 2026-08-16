@@ -4,6 +4,7 @@ import { Order } from "../models/Order.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { env } from "../config/env.js";
+import { notify } from "../services/notify.js";
 
 function expireStaleRequests() {
   return CommissionRequest.updateMany(
@@ -51,6 +52,14 @@ export const createRequest = asyncHandler(async (req, res) => {
     budgetRange,
     status: "pending",
     expiresAt: new Date(Date.now() + env.requestExpiryDays * 24 * 60 * 60 * 1000),
+  });
+
+  await notify(artistId, {
+    type: "order",
+    title: "New commission request",
+    message: `A collector sent you a commission request${packageTitle ? ` (${packageTitle})` : ""}.`,
+    refId: request._id,
+    refModel: "CommissionRequest",
   });
 
   res.status(201).json({ success: true, request });
@@ -172,6 +181,14 @@ export const acceptRequest = asyncHandler(async (req, res) => {
     artistPayoutAmount,
     status: "awaiting_payment",
     revisionLimit,
+  });
+
+  await notify(request.artistId, {
+    type: "order",
+    title: "New commission order",
+    message: `A buyer accepted your quote for "${request.packageTitle || "Commission"}" (Rs. ${agreedPrice}).`,
+    refId: order._id,
+    refModel: "Order",
   });
 
   res.status(201).json({ success: true, request: accepted, order });

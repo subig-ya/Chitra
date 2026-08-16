@@ -206,7 +206,7 @@ function Header({ cart, bump }) {
             )}
           </Link>
           <Link
-            to={user ? "/profile" : "/login"}
+            to={user ? (user.role === "artist" ? "/panel" : "/profile") : "/login"}
             title="Account"
             className="rounded-full p-2 text-ink-soft transition hover:bg-brand-100 hover:text-brand-800"
           >

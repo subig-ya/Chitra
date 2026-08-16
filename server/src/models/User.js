@@ -17,6 +17,8 @@ const commissionPackageSchema = new mongoose.Schema(
 const artistProfileSchema = new mongoose.Schema(
   {
     bio: { type: String, trim: true, maxlength: 2000 },
+    yearsExperience: { type: Number, min: 0, max: 100 },
+    specialty: { type: String, trim: true, maxlength: 120 },
     portfolioImages: [{ type: String, trim: true }],
     commissionPackages: {
       type: [commissionPackageSchema],
@@ -52,6 +54,7 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ROLES, default: "buyer", index: true },
     avatar: { type: String, trim: true },
+    coverImage: { type: String, trim: true },
     bio: { type: String, trim: true, maxlength: 2000 },
     wishlist: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Artwork" }],

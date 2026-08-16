@@ -3,6 +3,7 @@ import { Dispute } from "../models/Dispute.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { releasePayment, refundPayment } from "../services/escrow.js";
+import { notify, notifyAdmins } from "../services/notify.js";
 
 const ACTIVE_ORDER_STATES = ["in_progress", "delivered", "revision_requested"];
 
@@ -40,6 +41,23 @@ export const raiseDispute = asyncHandler(async (req, res) => {
   order.status = "disputed";
   order.autoReleaseAt = null;
   await order.save();
+
+  const otherParty =
+    order.buyerId.toString() === req.userId ? order.artistId : order.buyerId;
+  await notify(otherParty, {
+    type: "dispute",
+    title: "A dispute was opened on your order",
+    message: `A dispute was raised on "${order.packageTitle}". Chitra's team has been notified.`,
+    refId: dispute._id,
+    refModel: "Dispute",
+  });
+  await notifyAdmins({
+    type: "dispute",
+    title: "New dispute to resolve",
+    message: `A dispute was raised on "${order.packageTitle}".`,
+    refId: dispute._id,
+    refModel: "Dispute",
+  });
 
   res.status(201).json({ success: true, dispute, orderStatus: order.status });
 });
@@ -99,6 +117,21 @@ export const resolveDispute = asyncHandler(async (req, res) => {
   dispute.resolvedBy = req.userId;
   dispute.resolvedAt = new Date();
   await dispute.save();
+
+  const parties = [order.buyerId, order.artistId].filter(
+    (id) => id.toString() !== req.userId
+  );
+  await Promise.all(
+    parties.map((party) =>
+      notify(party, {
+        type: "dispute",
+        title: "Your dispute was resolved",
+        message: `Chitra resolved the dispute on "${order.packageTitle}" (${resolution.replace(/_/g, " ")}).`,
+        refId: dispute._id,
+        refModel: "Dispute",
+      })
+    )
+  );
 
   res.json({ success: true, dispute, orderStatus: order.status });
 });

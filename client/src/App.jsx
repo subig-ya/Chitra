@@ -25,6 +25,11 @@ import PaymentReturn from "./pages/PaymentReturn.jsx";
 import Profile from "./pages/Profile.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import PanelLayout from "./components/panel/PanelLayout.jsx";
+import PanelOverview from "./pages/panel/PanelOverview.jsx";
+import PanelNotifications from "./pages/panel/PanelNotifications.jsx";
+import PanelReports from "./pages/panel/PanelReports.jsx";
+import PanelSettings from "./pages/panel/PanelSettings.jsx";
 
 function MarketplaceLayout() {
   return (
@@ -135,6 +140,27 @@ export default function App() {
             </RequireAuth>
           }
         />
+      </Route>
+
+      <Route
+        path="/panel"
+        element={
+          <RequireAuth roles={["artist"]}>
+            <PanelLayout />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<PanelOverview />} />
+        <Route
+          path="artworks"
+          element={<MyArtworks />}
+        />
+        <Route path="orders" element={<Orders />} />
+        <Route path="requests" element={<Requests />} />
+        <Route path="messages" element={<Conversations />} />
+        <Route path="notifications" element={<PanelNotifications />} />
+        <Route path="reports" element={<PanelReports />} />
+        <Route path="settings" element={<PanelSettings />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

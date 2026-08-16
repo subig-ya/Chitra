@@ -17,8 +17,11 @@ export default function Login() {
     setBusy(true);
     setError("");
     try {
-      await login({ email, password });
-      navigate(location.state?.from || "/");
+      const data = await login({ email, password });
+      navigate(
+        location.state?.from ||
+          (data.user?.role === "artist" ? "/panel" : "/")
+      );
     } catch (err) {
       setError(apiErrorMessage(err, "Login failed"));
     } finally {

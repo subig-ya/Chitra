@@ -24,11 +24,18 @@ export const updateMe = asyncHandler(async (req, res) => {
   if (updates.name !== undefined) user.name = updates.name;
   if (updates.bio !== undefined) user.bio = updates.bio;
   if (updates.avatar !== undefined) user.avatar = updates.avatar;
+  if (updates.coverImage !== undefined) user.coverImage = updates.coverImage;
 
   if (updates.artistProfile) {
     if (!user.artistProfile) user.artistProfile = { isVerified: false };
     if (updates.artistProfile.bio !== undefined) {
       user.artistProfile.bio = updates.artistProfile.bio;
+    }
+    if (updates.artistProfile.yearsExperience !== undefined) {
+      user.artistProfile.yearsExperience = updates.artistProfile.yearsExperience;
+    }
+    if (updates.artistProfile.specialty !== undefined) {
+      user.artistProfile.specialty = updates.artistProfile.specialty;
     }
     if (updates.artistProfile.portfolioImages !== undefined) {
       user.artistProfile.portfolioImages = updates.artistProfile.portfolioImages;
@@ -51,6 +58,7 @@ export const getPublicProfile = asyncHandler(async (req, res) => {
         _id: user._id,
         name: user.name,
         avatar: user.avatar,
+        coverImage: user.coverImage,
         bio: user.bio,
         role: user.role,
         artistProfile: user.artistProfile,

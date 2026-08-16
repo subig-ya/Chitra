@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { releasePayment, refundPayment } from "../services/escrow.js";
 import { env } from "../config/env.js";
+import { notify } from "../services/notify.js";
 
 function refId(ref) {
   return String(ref && ref._id ? ref._id : ref);
@@ -104,6 +105,14 @@ export const deliverOrder = asyncHandler(async (req, res) => {
   );
   await order.save();
 
+  await notify(refId(order.buyerId), {
+    type: "order",
+    title: "Deliverables submitted",
+    message: `The artist delivered "${order.packageTitle}". Review and approve before auto-release.`,
+    refId: order._id,
+    refModel: "Order",
+  });
+
   res.json({
     success: true,
     order,
@@ -136,6 +145,14 @@ export const approveOrder = asyncHandler(async (req, res) => {
     { _id: order.artistId },
     { $inc: { "artistProfile.totalOrders": 1 } }
   );
+
+  await notify(refId(order.artistId), {
+    type: "payment",
+    title: "Payment released from escrow",
+    message: `The buyer approved "${order.packageTitle}". Rs. ${order.artistPayoutAmount} has been released to you.`,
+    refId: order._id,
+    refModel: "Order",
+  });
 
   res.json({
     success: true,
@@ -174,6 +191,14 @@ export const requestRevision = asyncHandler(async (req, res) => {
   }
   await order.save();
 
+  await notify(refId(order.artistId), {
+    type: "order",
+    title: "Revision requested",
+    message: `The buyer asked for a revision (${order.revisionCount}/${order.revisionLimit}) on "${order.packageTitle}"${req.body.note ? `: ${req.body.note.slice(0, 120)}` : ""}.`,
+    refId: order._id,
+    refModel: "Order",
+  });
+
   res.json({
     success: true,
     order,
@@ -199,6 +224,14 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   order.autoReleaseAt = null;
   await order.save();
   await refundPayment(order);
+
+  await notify(refId(order.artistId), {
+    type: "order",
+    title: "Order cancelled",
+    message: `The buyer cancelled "${order.packageTitle}". The artwork is back on sale.`,
+    refId: order._id,
+    refModel: "Order",
+  });
 
   res.json({ success: true, order, message: "Order cancelled" });
 });

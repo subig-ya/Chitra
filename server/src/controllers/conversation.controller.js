@@ -5,6 +5,7 @@ import {
 import { User } from "../models/User.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { notify } from "../services/notify.js";
 
 function refId(ref) {
   return String(ref && ref._id ? ref._id : ref);
@@ -109,6 +110,19 @@ export const sendConversationMessage = asyncHandler(async (req, res) => {
 
   conversation.lastMessageAt = new Date();
   await conversation.save();
+
+  const recipientId =
+    refId(conversation.buyerId) === req.userId
+      ? refId(conversation.artistId)
+      : refId(conversation.buyerId);
+
+  await notify(recipientId, {
+    type: "message",
+    title: "New message",
+    message: req.body.content.slice(0, 140),
+    refId: conversation._id,
+    refModel: "Conversation",
+  });
 
   res.status(201).json({ success: true, message });
 });

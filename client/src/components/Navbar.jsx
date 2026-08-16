@@ -23,7 +23,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-2">
-          <NavLink to="/" className={navLinkClass} end>
+          <NavLink to="/shop" className={navLinkClass} end>
             Browse artists
           </NavLink>
           {user && user.role === "artist" && (

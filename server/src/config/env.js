@@ -25,4 +25,5 @@ export const env = {
   platformFeePercent: parseFloat(process.env.PLATFORM_FEE_PERCENT || "10"),
   autoReleaseDays: parseInt(process.env.AUTO_RELEASE_DAYS || "5", 10),
   requestExpiryDays: parseInt(process.env.REQUEST_EXPIRY_DAYS || "7", 10),
+  paymentWebhookSecret: process.env.PAYMENT_WEBHOOK_SECRET || "dev-webhook-secret",
 };

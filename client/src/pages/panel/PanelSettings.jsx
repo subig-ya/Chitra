@@ -7,6 +7,7 @@ import ImageUpload from "../../components/panel/ImageUpload.jsx";
 export default function PanelSettings() {
   const queryClient = useQueryClient();
   const { user, updateUser } = useAuth();
+  const isArtist = user?.role === "artist";
 
   const { data } = useQuery({
     queryKey: ["me"],
@@ -55,19 +56,18 @@ export default function PanelSettings() {
   const submit = (e) => {
     e.preventDefault();
     setError("");
-    save.mutate({
-      name: form.name,
-      bio: form.bio,
-      avatar: form.avatar,
-      coverImage: form.coverImage,
-      artistProfile: {
+    const payload = { name: form.name, bio: form.bio, avatar: form.avatar };
+    if (isArtist) {
+      payload.coverImage = form.coverImage;
+      payload.artistProfile = {
         bio: form.artistBio,
         yearsExperience: form.yearsExperience
           ? Number(form.yearsExperience)
           : undefined,
         specialty: form.specialty,
-      },
-    });
+      };
+    }
+    save.mutate(payload);
   };
 
   const input =
@@ -77,16 +77,20 @@ export default function PanelSettings() {
     <div>
       <h1 className="font-display text-3xl font-bold">Profile settings</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Set your cover and profile photo, bio and experience.
+        {isArtist
+          ? "Set your cover and profile photo, bio and experience."
+          : "Update your name, photo and bio."}
       </p>
 
       <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="h-40 bg-gradient-to-r from-slate-200 to-slate-100">
-          {form.coverImage && (
-            <img src={form.coverImage} alt="Cover" className="h-full w-full object-cover" />
-          )}
-        </div>
-        <div className="-mt-12 px-6 pb-6">
+        {isArtist && (
+          <div className="h-40 bg-gradient-to-r from-slate-200 to-slate-100">
+            {form.coverImage && (
+              <img src={form.coverImage} alt="Cover" className="h-full w-full object-cover" />
+            )}
+          </div>
+        )}
+        <div className={isArtist ? "-mt-12 px-6 pb-6" : "p-6"}>
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100">
             {form.avatar ? (
               <img src={form.avatar} alt="" className="h-full w-full object-cover" />
@@ -105,41 +109,20 @@ export default function PanelSettings() {
                 onChange={(v) => setForm((f) => ({ ...f, avatar: v }))}
                 roundedClass="rounded-full"
               />
-              <ImageUpload
-                label="Cover photo"
-                value={form.coverImage}
-                onChange={(v) => setForm((f) => ({ ...f, coverImage: v }))}
-                roundedClass="rounded-2xl"
-              />
+              {isArtist && (
+                <ImageUpload
+                  label="Cover photo"
+                  value={form.coverImage}
+                  onChange={(v) => setForm((f) => ({ ...f, coverImage: v }))}
+                  roundedClass="rounded-2xl"
+                />
+              )}
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-slate-500">Name *</span>
                 <input className={input} required value={form.name} onChange={set("name")} />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-medium text-slate-500">Specialty</span>
-                <input
-                  className={input}
-                  placeholder="e.g. Oil painting, Portraits"
-                  value={form.specialty}
-                  onChange={set("specialty")}
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-medium text-slate-500">
-                  Years of experience
-                </span>
-                <input
-                  className={input}
-                  type="number"
-                  min={0}
-                  max={100}
-                  placeholder="e.g. 5"
-                  value={form.yearsExperience}
-                  onChange={set("yearsExperience")}
-                />
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-slate-500">Short bio</span>
@@ -150,18 +133,45 @@ export default function PanelSettings() {
                   onChange={set("bio")}
                 />
               </label>
-              <label className="block sm:col-span-2">
-                <span className="mb-1 block text-xs font-medium text-slate-500">
-                  About / experience
-                </span>
-                <textarea
-                  className={input}
-                  rows={4}
-                  placeholder="Tell collectors about your journey, training and experience…"
-                  value={form.artistBio}
-                  onChange={set("artistBio")}
-                />
-              </label>
+              {isArtist && (
+                <>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium text-slate-500">Specialty</span>
+                    <input
+                      className={input}
+                      placeholder="e.g. Oil painting, Portraits"
+                      value={form.specialty}
+                      onChange={set("specialty")}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium text-slate-500">
+                      Years of experience
+                    </span>
+                    <input
+                      className={input}
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="e.g. 5"
+                      value={form.yearsExperience}
+                      onChange={set("yearsExperience")}
+                    />
+                  </label>
+                  <label className="block sm:col-span-2">
+                    <span className="mb-1 block text-xs font-medium text-slate-500">
+                      About / experience
+                    </span>
+                    <textarea
+                      className={input}
+                      rows={4}
+                      placeholder="Tell collectors about your journey, training and experience…"
+                      value={form.artistBio}
+                      onChange={set("artistBio")}
+                    />
+                  </label>
+                </>
+              )}
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

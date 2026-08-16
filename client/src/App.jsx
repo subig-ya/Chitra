@@ -145,7 +145,7 @@ export default function App() {
       <Route
         path="/panel"
         element={
-          <RequireAuth roles={["artist"]}>
+          <RequireAuth roles={["artist", "buyer"]}>
             <PanelLayout />
           </RequireAuth>
         }
@@ -156,6 +156,7 @@ export default function App() {
           element={<MyArtworks />}
         />
         <Route path="orders" element={<Orders />} />
+        <Route path="favourites" element={<Wishlist />} />
         <Route path="requests" element={<Requests />} />
         <Route path="messages" element={<Conversations />} />
         <Route path="notifications" element={<PanelNotifications />} />

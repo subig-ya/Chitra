@@ -112,6 +112,11 @@ export default function Navbar() {
               My requests
             </NavLink>
           )}
+          {user && user.role === "buyer" && (
+            <NavLink to="/panel" className={navLinkClass}>
+              Dashboard
+            </NavLink>
+          )}
           {user && (
             <NavLink to="/orders" className={navLinkClass}>
               Orders

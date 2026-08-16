@@ -18,8 +18,8 @@ export default function Register() {
     setBusy(true);
     setError("");
     try {
-      const data = await register({ name, email, password, role });
-      navigate(data.user?.role === "artist" ? "/panel" : "/");
+      await register({ name, email, password, role });
+      navigate("/panel");
     } catch (err) {
       setError(apiErrorMessage(err, "Registration failed"));
     } finally {

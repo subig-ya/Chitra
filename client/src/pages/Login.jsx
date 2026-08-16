@@ -17,11 +17,8 @@ export default function Login() {
     setBusy(true);
     setError("");
     try {
-      const data = await login({ email, password });
-      navigate(
-        location.state?.from ||
-          (data.user?.role === "artist" ? "/panel" : "/")
-      );
+      await login({ email, password });
+      navigate(location.state?.from || "/panel");
     } catch (err) {
       setError(apiErrorMessage(err, "Login failed"));
     } finally {

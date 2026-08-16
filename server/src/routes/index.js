@@ -5,6 +5,7 @@ import artistRoutes from "./artist.routes.js";
 import requestRoutes from "./request.routes.js";
 import orderRoutes from "./order.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import payoutRoutes from "./payout.routes.js";
 import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
@@ -19,6 +20,7 @@ router.use("/artists", artistRoutes);
 router.use("/requests", requestRoutes);
 router.use("/orders", orderRoutes);
 router.use("/payments", paymentRoutes);
+router.use("/payouts", payoutRoutes);
 
 router.use("/protected-ping", authenticate, (req, res) =>
   res.json({ success: true, user: req.user })

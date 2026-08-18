@@ -27,7 +27,27 @@ function CartIcon() {
   );
 }
 
-export default function Navbar() {
+function PanelIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
+export default function Navbar({ onPanelOpen }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -45,6 +65,17 @@ export default function Navbar() {
     navigate("/");
   };
 
+  const panelBtn = (
+    <button
+      onClick={onPanelOpen}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-amber-300 hover:text-amber-700"
+      aria-label="Open panel"
+    >
+      <PanelIcon />
+      <span className="hidden sm:inline">Panel</span>
+    </button>
+  );
+
   if (user?.role === "artist") {
     return (
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -56,20 +87,10 @@ export default function Navbar() {
             <NavLink to="/" className={navLinkClass} end>
               Home
             </NavLink>
-            {user.avatar && (
-              <Link
-                to="/panel"
-                className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-slate-200"
-                aria-label="Artist panel"
-              >
-                <img src={user.avatar} alt="" className="h-full w-full object-cover" />
-              </Link>
-            )}
-            {!user.avatar && (
-              <NavLink to="/panel" className={navLinkClass}>
-                {user.name.split(" ")[0]}
-              </NavLink>
-            )}
+            <NavLink to="/shop" className={navLinkClass} end>
+              Shop
+            </NavLink>
+            {panelBtn}
             <button
               onClick={handleLogout}
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 hover:bg-slate-100"
@@ -102,19 +123,9 @@ export default function Navbar() {
           <NavLink to="/stories" className={navLinkClass} end>
             Stories
           </NavLink>
-          {user && user.role === "artist" && (
-            <NavLink to="/requests" className={navLinkClass}>
-              Requests
-            </NavLink>
-          )}
           {user && user.role === "buyer" && (
             <NavLink to="/requests" className={navLinkClass}>
               My requests
-            </NavLink>
-          )}
-          {user && user.role === "buyer" && (
-            <NavLink to="/panel" className={navLinkClass}>
-              Dashboard
             </NavLink>
           )}
           {user && (
@@ -141,6 +152,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              {panelBtn}
               <NavLink
                 to="/messages"
                 className={navLinkClass}

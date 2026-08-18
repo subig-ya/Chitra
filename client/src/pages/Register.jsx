@@ -19,7 +19,7 @@ export default function Register() {
     setError("");
     try {
       await register({ name, email, password, role });
-      navigate("/panel");
+      navigate("/feed");
     } catch (err) {
       setError(apiErrorMessage(err, "Registration failed"));
     } finally {

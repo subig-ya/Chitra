@@ -18,7 +18,7 @@ export default function Login() {
     setError("");
     try {
       await login({ email, password });
-      navigate(location.state?.from || "/panel");
+      navigate(location.state?.from || "/feed");
     } catch (err) {
       setError(apiErrorMessage(err, "Login failed"));
     } finally {

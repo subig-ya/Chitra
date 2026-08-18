@@ -1,7 +1,8 @@
 import { Routes, Route, Outlet } from "react-router-dom";
-import Navbar from "./components/Navbar.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
+import AppShell from "./components/layout/AppShell.jsx";
 import Landing from "./pages/Landing.jsx";
+import Feed from "./pages/Feed.jsx";
 import Home from "./pages/Home.jsx";
 import Shop from "./pages/Shop.jsx";
 import ArtworkDetail from "./pages/ArtworkDetail.jsx";
@@ -25,29 +26,20 @@ import PaymentReturn from "./pages/PaymentReturn.jsx";
 import Profile from "./pages/Profile.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
 import NotFound from "./pages/NotFound.jsx";
-import PanelLayout from "./components/panel/PanelLayout.jsx";
-import PanelOverview from "./pages/panel/PanelOverview.jsx";
-import PanelNotifications from "./pages/panel/PanelNotifications.jsx";
-import PanelReports from "./pages/panel/PanelReports.jsx";
-import PanelSettings from "./pages/panel/PanelSettings.jsx";
-
-function MarketplaceLayout() {
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <Navbar />
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <Outlet />
-      </main>
-    </div>
-  );
-}
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
 
-      <Route element={<MarketplaceLayout />}>
+      <Route
+        element={
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        }
+      >
+        <Route path="/feed" element={<Feed />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/artworks/:id" element={<ArtworkDetail />} />
         <Route path="/artists" element={<Home />} />
@@ -57,78 +49,20 @@ export default function App() {
         <Route path="/stories" element={<Stories />} />
         <Route path="/stories/:id" element={<StoryDetail />} />
         <Route path="/advisory" element={<Advisory />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/messages" element={<Conversations />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
+        <Route path="/requests" element={<Requests />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/payment/return" element={<PaymentReturn />} />
-        <Route
-          path="/cart"
-          element={
-            <RequireAuth>
-              <Cart />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <RequireAuth>
-              <Checkout />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/wishlist"
-          element={
-            <RequireAuth>
-              <Wishlist />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/messages"
-          element={
-            <RequireAuth>
-              <Conversations />
-            </RequireAuth>
-          }
-        />
         <Route
           path="/artworks/mine"
           element={
             <RequireAuth roles={["artist"]}>
               <MyArtworks />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/requests"
-          element={
-            <RequireAuth>
-              <Requests />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <RequireAuth>
-              <Orders />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/orders/:id"
-          element={
-            <RequireAuth>
-              <OrderDetail />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <RequireAuth>
-              <Profile />
             </RequireAuth>
           }
         />
@@ -142,27 +76,8 @@ export default function App() {
         />
       </Route>
 
-      <Route
-        path="/panel"
-        element={
-          <RequireAuth roles={["artist", "buyer"]}>
-            <PanelLayout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<PanelOverview />} />
-        <Route
-          path="artworks"
-          element={<MyArtworks />}
-        />
-        <Route path="orders" element={<Orders />} />
-        <Route path="favourites" element={<Wishlist />} />
-        <Route path="requests" element={<Requests />} />
-        <Route path="messages" element={<Conversations />} />
-        <Route path="notifications" element={<PanelNotifications />} />
-        <Route path="reports" element={<PanelReports />} />
-        <Route path="settings" element={<PanelSettings />} />
-      </Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

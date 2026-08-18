@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api.js";
 import { timeAgo } from "../../lib/time.js";
+import { usePanelNav } from "./PanelNavContext.jsx";
 
 function refTarget(notification) {
   switch (notification.refModel) {
@@ -11,10 +12,6 @@ function refTarget(notification) {
       return `/orders/${notification.refId}`;
     case "Artwork":
       return `/artworks/${notification.refId}`;
-    case "Conversation":
-      return "/panel/messages";
-    case "Report":
-      return "/panel/reports";
     case "CommissionRequest":
       return "/requests";
     default:
@@ -42,6 +39,7 @@ function BellIcon() {
 
 export default function NotificationBell() {
   const navigate = useNavigate();
+  const { navigateTo } = usePanelNav();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -75,7 +73,8 @@ export default function NotificationBell() {
     });
     setOpen(false);
     const to = refTarget(n);
-    navigate(to || "/panel/notifications");
+    if (to) navigate(to);
+    else navigateTo("notifications");
   };
 
   useEffect(() => {
@@ -91,26 +90,26 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
+        className="relative rounded-full border border-plum/15 bg-white/90 p-2 text-plum-600 transition hover:bg-lavender/50 hover:text-plum"
         aria-label={`Notifications, ${unread} unread`}
       >
         <BellIcon />
         {unread > 0 && (
-          <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-bold text-white">
             {unread > 99 ? "99+" : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:w-96">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-            <p className="text-sm font-bold">Notifications</p>
+        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-plum/10 bg-white shadow-lg shadow-plum-900/5 sm:w-96">
+          <div className="flex items-center justify-between border-b border-plum/10 px-4 py-3">
+            <p className="font-display text-sm font-semibold text-plum">Notifications</p>
             {unread > 0 && (
               <button
                 type="button"
                 onClick={() => markAll.mutate()}
-                className="text-xs font-semibold text-amber-600 hover:underline"
+                className="text-xs font-medium text-rose transition hover:text-plum"
               >
                 Mark all as read
               </button>
@@ -118,37 +117,31 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 && (
-              <p className="p-6 text-center text-sm text-slate-400">
-                No notifications yet.
-              </p>
+              <p className="p-6 text-center text-sm text-ink-muted">No notifications yet.</p>
             )}
             {items.map((n) => (
               <button
                 key={n._id}
                 type="button"
                 onClick={() => clickItem(n)}
-                className={`flex w-full gap-3 border-b border-slate-50 px-4 py-3 text-left transition hover:bg-slate-50 ${
-                  n.readAt ? "" : "bg-amber-50/40"
+                className={`flex w-full gap-3 border-b border-plum/5 px-4 py-3 text-left transition hover:bg-blush/50 ${
+                  n.readAt ? "" : "bg-blush/30"
                 }`}
               >
                 <span
                   className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                    n.readAt ? "bg-slate-200" : "bg-amber-600"
+                    n.readAt ? "bg-lavender" : "bg-rose"
                   }`}
                 />
                 <span className="min-w-0">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-slate-800">
-                      {n.title}
-                    </span>
-                    <span className="shrink-0 text-[11px] text-slate-400">
+                    <span className="truncate text-sm font-semibold text-plum">{n.title}</span>
+                    <span className="shrink-0 text-[11px] text-ink-muted">
                       {timeAgo(n.createdAt)}
                     </span>
                   </span>
                   {n.message && (
-                    <span className="mt-0.5 block truncate text-xs text-slate-500">
-                      {n.message}
-                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-ink-soft">{n.message}</span>
                   )}
                 </span>
               </button>
@@ -158,9 +151,9 @@ export default function NotificationBell() {
             type="button"
             onClick={() => {
               setOpen(false);
-              navigate("/panel/notifications");
+              navigateTo("notifications");
             }}
-            className="block w-full bg-slate-50 py-2.5 text-center text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            className="block w-full border-t border-plum/10 py-2.5 text-center text-xs font-medium text-rose transition hover:bg-blush/40 hover:text-plum"
           >
             View all notifications
           </button>

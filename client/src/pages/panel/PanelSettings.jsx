@@ -71,32 +71,38 @@ export default function PanelSettings() {
   };
 
   const input =
-    "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none";
+    "w-full rounded-lg border border-plum/20 bg-white px-3 py-2 text-sm text-plum placeholder:text-ink-muted focus:border-rose focus:ring-2 focus:ring-blush focus:outline-none";
 
   return (
-    <div>
-      <h1 className="font-display text-3xl font-bold">Profile settings</h1>
-      <p className="mt-1 text-sm text-slate-500">
-        {isArtist
-          ? "Set your cover and profile photo, bio and experience."
-          : "Update your name, photo and bio."}
-      </p>
+    <div className="space-y-8">
+      <div>
+        <p className="flex items-center gap-3 text-[0.68rem] font-medium tracking-[0.34em] text-rose uppercase">
+          <span className="h-px w-8 bg-rose" />
+          Profile
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-semibold text-plum sm:text-4xl">
+          Profile settings
+        </h1>
+        <p className="mt-2 text-sm text-ink-soft">
+          {isArtist
+            ? "Set your cover and profile photo, bio and experience."
+            : "Update your name, photo and bio."}
+        </p>
+      </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        {isArtist && (
-          <div className="h-40 bg-gradient-to-r from-slate-200 to-slate-100">
-            {form.coverImage && (
-              <img src={form.coverImage} alt="Cover" className="h-full w-full object-cover" />
-            )}
-          </div>
-        )}
-        <div className={isArtist ? "-mt-12 px-6 pb-6" : "p-6"}>
-          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100">
+      <div className="overflow-hidden rounded-2xl border border-plum/10 bg-ivory">
+        <div className="h-36 bg-gradient-to-r from-lavender via-blush to-rose-soft/60">
+          {form.coverImage && (
+            <img src={form.coverImage} alt="Cover" className="h-full w-full object-cover" />
+          )}
+        </div>
+        <div className="-mt-12 px-6 pb-6">
+          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-rose-soft bg-blush ring-4 ring-ivory">
             {form.avatar ? (
               <img src={form.avatar} alt="" className="h-full w-full object-cover" />
             ) : (
-              <span className="text-2xl font-bold text-slate-400">
-                {(form.name || "A").charAt(0)}
+              <span className="font-display text-2xl font-semibold text-plum">
+                {(form.name || "A").charAt(0).toUpperCase()}
               </span>
             )}
           </div>
@@ -121,11 +127,11 @@ export default function PanelSettings() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-slate-500">Name *</span>
+                <span className="mb-1 block text-xs font-medium text-ink-muted">Name *</span>
                 <input className={input} required value={form.name} onChange={set("name")} />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium text-slate-500">Short bio</span>
+                <span className="mb-1 block text-xs font-medium text-ink-muted">Short bio</span>
                 <input
                   className={input}
                   placeholder="A one-liner about you"
@@ -136,7 +142,7 @@ export default function PanelSettings() {
               {isArtist && (
                 <>
                   <label className="block">
-                    <span className="mb-1 block text-xs font-medium text-slate-500">Specialty</span>
+                    <span className="mb-1 block text-xs font-medium text-ink-muted">Specialty</span>
                     <input
                       className={input}
                       placeholder="e.g. Oil painting, Portraits"
@@ -145,7 +151,7 @@ export default function PanelSettings() {
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1 block text-xs font-medium text-slate-500">
+                    <span className="mb-1 block text-xs font-medium text-ink-muted">
                       Years of experience
                     </span>
                     <input
@@ -159,7 +165,7 @@ export default function PanelSettings() {
                     />
                   </label>
                   <label className="block sm:col-span-2">
-                    <span className="mb-1 block text-xs font-medium text-slate-500">
+                    <span className="mb-1 block text-xs font-medium text-ink-muted">
                       About / experience
                     </span>
                     <textarea
@@ -182,7 +188,7 @@ export default function PanelSettings() {
             <button
               type="submit"
               disabled={save.isPending}
-              className="rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+              className="rounded-lg bg-plum px-8 py-3 text-sm font-medium text-white transition hover:bg-plum-700 disabled:opacity-60"
             >
               {save.isPending ? "Saving…" : "Save changes"}
             </button>
